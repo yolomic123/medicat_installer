@@ -1,55 +1,32 @@
 @echo OFF & setlocal enabledelayedexpansion
 cd /d %~dp0
-title Medicat Installer [STARTING]
-
-REM  --> Check for permissions
-    IF "%PROCESSOR_ARCHITECTURE%" EQU "amd64" (
->nul 2>&1 "%SYSTEMROOT%\SysWOW64\cacls.exe" "%SYSTEMROOT%\SysWOW64\config\system"
-) ELSE (
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-)
-
-REM --> If error flag set, we do not have admin.
-if '%errorlevel%' NEQ '0' (
-    echo Requesting administrative privileges...
-    goto UACPrompt
-) else ( goto gotAdmin )
-
+title Εγκαταστάτης Medicat  [ΑΡΧΗ]
+if exist "%SystemRoot%\SysWOW64" path %path%;%windir%\SysNative;%SystemRoot%\SysWOW64;%~dp0
+bcdedit >nul
+if '%errorlevel%' NEQ '0' (goto UACPrompt) else (goto UACAdmin)
 :UACPrompt
-    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-    set params= %*
-    echo UAC.ShellExecute "cmd.exe", "/c ""%~s0"" %params:"=""%", "", "runas", 1 >> "%temp%\getadmin.vbs"
-
-    "%temp%\getadmin.vbs"
-    del "%temp%\getadmin.vbs"
-    exit /B
-
-:gotAdmin
-    pushd "%CD%"
-    CD /D "%~dp0"
-:-------------------------------------- 
+%1 start "" mshta vbscript:createobject("shell.application").shellexecute("""%~0""","::",,"runas",1)(window.close)&exit
+exit /B
 :UACAdmin
 cd /d "%~dp0"
-set ver=3007
+set ver=3006
 set maindir=%CD%
 set format=Y
-:checkwget
+goto wgetextract
+:wgetafter
 if exist "%CD%\wget.exe" (goto curver) else (goto curlwget)
-:curlwget
-echo.attempting to download wget using curl.
-curl -O -s http://cdn.medicatusb.com/files/install/wget.exe
-goto checkwget
-:curver
-
 REM == CHECK FOR UPDATE FIRST. DO NOT PASS GO. DO NOT COLLECT $200
-
+:curlwget
+echo.Το WGET δεν βρεθηκε χρησιμοποιητε διαφορετικη μεθοδος
+curl -O -s http://cdn.medicatusb.com/files/install/wget.exe
+:curver
 wget "http://cdn.medicatusb.com/files/install/curver.ini" -O ./curver.ini -q
 set /p remver= < curver.ini
 del curver.ini /Q
 if "%ver%" == "%remver%" (goto pwrshl) else (goto updateprogram)
 :updateprogram
 cls
-echo.A new version of the program has been released. The program will now restart.
+echo.Μια καινουργια εκδοση του προγραματος υπαρχει. Το προγραμμα θα επανακινηθη.
 wget "http://url.medicatusb.com/installerupdate" -O ./MEDICAT_NEW.bat -q
 wget "http://cdn.medicatusb.com/files/install/update.bat" -O ./update.bat -q
 start cmd /k update.bat
@@ -70,23 +47,23 @@ mode con:cols=64 lines=18
 cls && goto:startup
 REM -- WARN FOR ANTIVIRUS AND CHECK FOR UPDATE TO PROGRAM
 :startup
-title Medicat Installer [ANTIVIRUS]
+title Εγκαταστάτης Medicat [ANTIVIRUS]
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
-echo.IIII           DUE TO THE PACKED FILES IN THIS             IIII
-echo.IIII          PROGRAM THE ANTIVIRUS MUST BE OFF            IIII
+echo.IIII           ΛΌΓΩ ΤΩΝ ΣΥΣΚΕΥΑΣΜΈΝΩΝ ΑΡΧΕΊΩΝ ΣΕ ΑΥΤΌ ΤΟ   IIII
+echo.IIIIΠΡΌΓΡΑΜΜΑ ΤΟ ANTIVIRUS ΠΡΈΠΕΙ ΝΑ ΕΊΝΑΙ ΑΠΕΝΕΡΓΟΠΟΙΗΜΈΝΟIIII
 echo.IIII                                                       IIII
-echo.IIII          PLEASE MAKE SURE ANTIVIRUS IS OFF            IIII
-echo.IIII        BEFORE CONTINUING TO USE THIS PROGRAM          IIII
+echo.IIII  ΒΕΒΑΙΩΘΕΊΤΕ ΌΤΙ ΤΟ ANTIVIRUS ΕΊΝΑΙ ΑΠΕΝΕΡΓΟΠΟΙΗΜΈΝΟ  IIII
+echo.IIII ΠΡΙΝ ΣΥΝΕΧΊΣΕΤΕ ΝΑ ΧΡΗΣΙΜΟΠΟΙΕΊΤΕ ΑΥΤΌ ΤΟ ΠΡΌΓΡΑΜΜA   IIII
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
-echo.                          Press any key to bypass this warning.&& pause >nul
+echo.                          Πατήστε οποιοδήποτε πλήκτρο για να παρακάμψετε αυτή την προειδοποίηση.&& pause >nul
 :checkupdateprogram
-title Medicat Installer [FILECHECK]
-ECHO.GETTING REQUIRED FILES FROM SERVER.
+title Εγκαταστάτης Medicat [FILECHECK]
+ECHO.ΛΉΨΗ ΤΩΝ ΑΠΑΙΤΟΎΜΕΝΩΝ ΑΡΧΕΊΩΝ ΑΠΌ ΤΟ ΔΙΑΚΟΜΙΣΤΉ.
 :cont
 wget "http://cdn.medicatusb.com/files/install/motd.txt" -O ./motd.txt -q
 wget "http://cdn.medicatusb.com/files/install/ver.ini" -O ./ver.ini -q
@@ -112,11 +89,11 @@ cls
 
 :menu
 REM -- THE MAIN MENU, THE HOLY GRAIL.
-title Medicat Installer [%ver%]
+title Εγκαταστάτης Medicat [%ver%]
 mode con:cols=100 lines=30
 type LICENSE.txt
 echo.
-echo.Press any Key to Continue (x2)
+echo.Πατήστε οποιοδήποτε πλήκτρο για να συνεχίσετε (x2)
 pause > nul
 pause > nul
 :menu2
@@ -171,12 +148,12 @@ mode con:cols=64 lines=18
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
-echo.IIII         COULD NOT FIND THE MEDICAT FILE(S).           IIII
-echo.IIII              HAVE YOU DOWNLOADED THEM?                IIII
+echo.IIII         ΔΕΝ ΜΠΌΡΕΣΕ ΝΑ ΒΡΕΙ ΤΟ(Α) ΑΡΧΕΊΟ(Α) MEDICAT.  IIII
+echo.IIII              ΤΑ ΈΧΕΤΕ ΚΑΤΕΒΆΣΕΙ?                      IIII
 echo.IIII                                                       IIII
-echo.IIII            (EITHER *.001 or the main .7z)             IIII
+echo.IIII            (ΕΙΤΕ *.001 ή το κύριο .7z)                IIII
 echo.IIII                                                       IIII
-echo.IIII           WOULD YOU LIKE TO DOWNLOAD THEM?            IIII
+echo.IIII           ΘΑ ΘΈΛΑΤΕ ΝΑ ΤΑ ΚΑΤΕΒΆΣΕΤΕ?                 IIII
 echo.IIII                       ( Y / N )                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
@@ -189,7 +166,7 @@ if errorlevel 1 cls && goto bigboi
 REM -- PROMPT USER TO INSTALL VENTOY TO THE USB DRIVE. VENTOY STILL NEEDS TO BE THERE EVEN IF USER ALREADY HAS IT.
 
 :warnventoy
-title Medicat Installer [VENTOYCHECK]
+title Εγκαταστάτης Medicat [VENTOYCHECK]
 
 cd .\INSTRUCTIONS\Ventoy2Disk\
 start Ventoy2Disk.exe
@@ -198,16 +175,16 @@ mode con:cols=64 lines=18
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
-echo.IIII            THIS PROGRAM REQUIRES YOU TO               IIII
-echo.IIII            HAVE VENTOY INSTALLED TO THE               IIII
-echo.IIII            USB DRIVE YOU WILL BE ADDING               IIII
-echo.IIII            MEDICAT USB TO. PLEASE DO SO               IIII
-echo.IIII            BEFORE ATTEMPTING TO RUN THE               IIII
-echo.IIII                   INSTALL SCRIPT                      IIII
+echo.IIII            ΑΥΤΌ ΤΟ ΠΡΌΓΡΑΜΜΑ ΑΠΑΙΤΕΊ ΑΠΌ ΕΣΆΣ ΝΑ      IIII
+echo.IIII            ΈΧΕΤΕ ΕΓΚΑΤΑΣΤΉΣΕΙ ΤΟ VENTOY ΣΤΗΝ          IIII
+echo.IIII            ΜΟΝΆΔΑ USB ΠΟΥ ΘΑ ΠΡΟΣΘΈΣΕΤΕ ΤΟ            IIII
+echo.IIII            MEDICAT USB. ΠΑΡΑΚΑΛΩ ΚΑΝΤΕ ΤΟ             IIII
+echo.IIII            ΠΡΙΝ ΕΠΙΧΕΙΡΉΣΕΤΕ ΝΑ ΕΚΤΕΛΈΣΕΤΕ ΤΟ         IIII
+echo.IIII                   SCRIPT  ΕΓΚΑΤΑΣΤΑΣΗΣ                IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
-echo.                          Press any key to bypass this warning.&& pause >nul
+echo.                          Πατήστε οποιοδήποτε πλήκτρο για να συνεχίσετε.&& pause >nul
 
 REM -- INSTALLER
 
@@ -217,7 +194,7 @@ if exist "%CD%\*.001" (goto warnhash) else (goto install2)
 REM -- IF DOWNLOADED IN PARTS, ASK USER IF THEY WANT TO DOWNLOAD THE HASH CHECKER (FIXER.EXE)
 
 :warnhash
-title Medicat Installer [HASHCHECK]
+title Εγκαταστάτης Medicat [HASHCHECK]
 cls
 if exist "%CD%\*.001" (echo..001 Exists) else (goto gdriveerror)
 if exist "%CD%\*.002" (echo..002 Exists) else (goto gdriveerror)
@@ -264,7 +241,7 @@ pause
 goto bigboi
 
 :install2
-title Medicat Installer [CHOOSEINSTALL]
+title Εγκαταστάτης Medicat [CHOOSEINSTALL]
 mode con:cols=100 lines=15
 echo.We now need to find out what drive you will be installing to.
 REM - FOLDER PROMPT STARTS
@@ -276,14 +253,14 @@ set drivepath=%folder:~0,1%
 IF "%drivepath%" == "C" GOTO IMPORTANTDRIVE
 if "%format%" == "Y" (goto formatdrive) else (goto installversion)
 :formatdrive
-Echo.Warning this will reformat the entire %drivepath%: disk!
-ECHO.You will be prompted to hit enter a few times.
+Echo.Προειδοποίηση αυτό θα επαναδιατυπώσει ολόκληρο το %drivepath%: δισκο!
+ECHO.Θα σας ζητηθεί να πατήσετε enter μερικές φορές.
 pause
 format %drivepath%: /FS:NTFS /x /q /V:Medicat
 goto installversion
 
 :error
-echo.nothing was chosen, try again
+echo.δεν επιλέχθηκε τίποτα, δοκιμάστε ξανά
 timeout 5
 goto install2
 :importantdrive
@@ -300,13 +277,13 @@ echo.IIII           THE PROGRAM WILL NOW ASK AGAIN              IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
-echo.                          Press any key to bypass this warning.[0m&& pause >nul
+echo.                          Πατήστε οποιοδήποτε πλήκτρο για να συνεχίσετε.[0m&& pause >nul
 goto install2
 
 REM -- CHECK WHICH VERSION USER DOWNLOADED
 
 :installversion
-title Medicat Installer [INSTALL!!!]
+title Εγκαταστάτης Medicat [INSTALL!!!]
 if exist "%CD%\MediCat.USB.v21.12.7z" (goto install4) else (goto installversion2)
 :installversion2
 if exist "%CD%\MediCat.USB.v%ver%.zip.001" (goto install5) else (goto installerror)
@@ -318,10 +295,10 @@ echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
-echo.IIII        THE INSTALLER COULD NOT FIND MEDICAT           IIII
-echo.IIII        PLEASE MANUALLY SELECT THE .7z FILE!           IIII
+echo.IIII        Ο ΕΓΚΑΤΑΣΤΆΤΗΣ ΔΕΝ ΜΠΌΡΕΣΕ ΝΑ ΒΡΕΙ ΤΟ MEDICAT  IIII
+echo.IIII ΠΑΡΑΚΑΛΟΥΜΕ ΝΑ ΕΠΙΛΕΞΕΤΕ ΧΕΙΡΟΚΙΝΗΤΑ ΤΟ ΑΡΧΕΙΟ .7z!   IIII
 echo.IIII                                                       IIII
-echo.IIII       PRESS ANY KEY TO OPEN THE FILE PROMPT!          IIII
+echo.IIIIΠΑΤΉΣΤΕ ΟΠΟΙΟΔΉΠΟΤΕ ΠΛΉΚΤΡΟ ΓΙΑ ΝΑ ΑΝΟΊΞΕΤΕ ΤΗΝ ΠΡΟΤΡΟΠΉ ΑΡΧΕΊΟΥ!IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
@@ -365,7 +342,7 @@ goto autorun2
 
 :autorun
 mode con:cols=100 lines=15
-echo.Please Select Your Medicat Drive
+echo.Παρακαλούμε επιλέξτε το Medicat Drive σας
 REM - FOLDER PROMPT STARTS
 set "psCommand="(new-object -COM 'Shell.Application')^
 .BrowseForFolder(0,'Please choose a folder.',0,0).self.path""
@@ -386,7 +363,7 @@ goto %goto%
 
 :deletefiles
 cd /d %maindir%
-echo.Would you like to delete the downloaded files?
+echo.Θέλετε να διαγράψετε τα κατεβασμένα αρχεία?
 echo.(everything in the folder you ran this from)
 echo.(%maindir%)
 choice /C:YN /N /M "Y/N"
@@ -399,7 +376,7 @@ Set _folder="%~dp0"
 Attrib +R %0
 PUSHD %_folder%
 If %errorlevel% NEQ 0 goto:eof
-ECHO Delete all contents of the folder: %_folder% ?
+ECHO Διαγράψτε όλα τα περιεχόμενα του φακέλου: %_folder% ?
 choice /C:YN /N /M "Y/N"
 if errorlevel 2 cls && exit
 if errorlevel 1 cls && goto YYEESS
@@ -441,8 +418,8 @@ echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
-echo.IIII           WOULD YOU LIKE TO USE THE TORRENT           IIII
-echo.IIII            TO DOWNLOAD THE LATEST VERSION?            IIII
+echo.IIII      ΘΑ ΘΈΛΑΤΕ ΝΑ ΧΡΗΣΙΜΟΠΟΙΉΣΕΤΕ ΤΟ TORRENT          IIII
+echo.IIII    ΓΙΑ ΝΑ ΚΑΤΕΒΆΣΕΤΕ ΤΗΝ ΤΕΛΕΥΤΑΊΑ ΈΚΔΟΣΗ?            IIII
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
 echo.IIII                         Y / N                         IIII
@@ -459,11 +436,11 @@ echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
-echo.IIII           WOULD YOU LIKE TO USE THE TORRENT           IIII
-echo.IIII            TO DOWNLOAD THE LATEST VERSION?            IIII
+echo.IIII           ΘΑ ΘΈΛΑΤΕ ΝΑ ΧΡΗΣΙΜΟΠΟΙΉΣΕΤΕ ΤΟ TORRENT     IIII
+echo.IIII            ΓΙΑ ΝΑ ΚΑΤΕΒΆΣΕΤΕ ΤΗΝ ΤΕΛΕΥΤΑΊΑ ΈΚΔΟΣΗ?    IIII
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
-echo.IIII             OK USING GOOGLE DRIVE INSTEAD             IIII
+echo.IIII           OK ΧΡΗΣΙΜΟΠΟΙΏΝΤΑΣ ΤΟ GOOGLE DRIVE ΑΝΤΊ     IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
@@ -491,20 +468,20 @@ REM == RUNS AT START.
 if exist "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" (goto winvercheck0) else (goto pwrshlerr)
 :pwrshlerr
 mode con:cols=64 lines=18
-title Medicat Installer [ERROR]
+title Εγκαταστάτης Medicat [ERROR]
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
-echo.IIII                 THIS PROGRAM REQUIRES                 IIII
-echo.IIII              POWERSHELL TO BE INSTALLED.              IIII
+echo.IIII                 ΑΥΤΌ ΤΟ ΠΡΌΓΡΑΜΜΑ ΑΠΑΙΤΕΊ             IIII
+echo.IIII              POWERSHELL ΝΑ ΕΙΝΑΙ ΕΓΚΑΤΆΣΤΗΜΕΝΟ.       IIII
 echo.IIII                                                       IIII
-echo.IIII         PLEASE INSTALL POWERSHELL ON YOUR OS          IIII
-echo.IIII                 AND TRY AGAIN. THANKS.                IIII
+echo.IIIIΠΑΡΑΚΑΛΟΎΜΕ ΕΓΚΑΤΑΣΤΉΣΤΕ ΤΟ POWERSHELL ΣΤΟ ΛΕΙΤΟΥΡΓΙΚΌ ΣΑΣ ΣΎΣΤΗΜΑIIII
+echo.IIII                 ΚΑΙ ΞΑΝΑΠΡΟΣΠΑΘΉΣΤΕ. ΕΥΧΑΡΙΣΤΙΕΣ.     IIII
 echo.IIII                                                       IIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
-echo.If you believe it IS installed and want to bypass this warning,
+echo.Εάν πιστεύετε ότι ΕΙΝΑΙ εγκατεστημένο και θέλετε να παρακάμψετε αυτή την προειδοποίηση,
 Set /P _num=type "OK": || Set _num=NothingChosen
 If "%_num%"=="NothingChosen" exit
 If /i "%_num%"=="ok" goto winvercheck0
@@ -530,16 +507,16 @@ goto winvererror
 
 :winvererror
 mode con:cols=64 lines=18
-title Medicat Installer [UNSUPPORTED]
+title Εγκαταστάτης Medicat [UNSUPPORTED]
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
 echo.IIII                                                       IIII
-echo.IIII                  [91m%os%[0m                 IIII
-echo.IIII                   Is Not Supported.                   IIII
+echo.IIII                  [91m%os%[0m                   IIII
+echo.IIII                   Δεν υποστιριζεται πια.              IIII
 echo.IIII                                                       IIII
-echo.IIII            PLEASE UPDATE TO WINDOWS 10/11             IIII
+echo.IIII            Παρακαλουμε ενημερωσετε σε Windows 10/11   IIII
 echo.IIII                                                       IIII
-echo.IIII          [91mINSIDER BUILDS MAY HAVE THIS ERROR[0m           IIII
+echo.IIII[91m Versions Insider Μπορω να εχουν αφτο το θεμα[0mIIII
 echo.IIII                                                       IIII
 echo.II-----------------------------------------------------------II
 echo.II-----------------------------------------------------------II
@@ -602,5 +579,18 @@ echo.              .oo0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0oo.
 echo.                  .oo0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0oo.                  
 echo.                      ..ooo000@@@@@@@@@@@@@@@@@@@@@@@@000ooo..                      
 echo.                              ....oooooooooooooooo....                              
-echo.CODED BY MON5TERMATT With Help from AAA3A, Daan Breur, Jayro, and many others. Thanks!
+echo.Κοδικοποιημενο απο MON5TERMATT με την βοηθεια των AAA3A, Daan Breur, Jayro, και πολλων αλλων. Ευχαριστουμε!
+echo.Ελληνικη Μετφραση απο Yolomic#8395
 exit/b
+
+
+
+
+
+
+
+REM REQUIRED FILES FOR EXTRACTION
+
+:wgetextract
+echo.[30m
+@set "0=%~f0" &powershell -nop -c $f=[IO.File]::ReadAllText($env:0)-split':bat2file\:.*';iex($f[1]); X(1) &echo.[0m &goto wgetafter
