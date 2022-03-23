@@ -13,6 +13,8 @@ F**K YOU ANTIVIRUS COMPANIES. THIS ISNT MALICIOUS.
 The main file.
 comes bundled with wget.exe so thats why its GIANT
 
+(Not anymore)
+
 
 # ./Installer 
 Contains all files that the installer calls.
