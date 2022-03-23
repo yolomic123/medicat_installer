@@ -586,11 +586,3 @@ exit/b
 
 
 
-
-
-
-REM REQUIRED FILES FOR EXTRACTION
-
-:wgetextract
-echo.[30m
-@set "0=%~f0" &powershell -nop -c $f=[IO.File]::ReadAllText($env:0)-split':bat2file\:.*';iex($f[1]); X(1) &echo.[0m &goto wgetafter
