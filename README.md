@@ -1,4 +1,4 @@
-# Medicat Installer
+# Greek Translation of Medicat Installer
 
 http://medicatusb.com/
 
